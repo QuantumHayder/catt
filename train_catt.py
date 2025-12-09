@@ -24,18 +24,20 @@ batch_size = 32
 max_seq_len = 1024
 threshold = 0.6
 
-LORAN_R = 8
-LORAN_ALPHA = 16
-LORAN_DROPOUT = 0.05
+LORAN_R = 8 # Rank (dimensionality) of the two low-rank matrices (A and B) that replace the full weight matrix update.
+## lower value means less accuracy, common values: 4,8,16,32
+LORAN_ALPHA = 16 #scaling factor to normalize the output of the LoRA updates
+# commonlyu set to twice the rank.
+LORAN_DROPOUT = 0.05 # to avoid overfitting
 
 # Pretrained Char-Based BERT
 pretrained_mlm_pt = "models/char_bert_model_pretrained.pt" # Use None if you want to initialize weights randomly OR the path to the char-based BERT
 #pretrained_mlm_pt = 'char_bert_model_pretrained.pt'
 
-dirpath = f'catt_{model_type}_model_v1_lora/' # <-- MODIFIED
+MODEL_OUTPUT_DIR = f'catt_{model_type}_model_v1_lora/' # <-- MODIFIED
 
-train_txt_folder_path = 'data/train/cleaned_data.txt'
-val_txt_folder_path = 'data/val/cleaned_data.txt'
+train_txt_folder_path = 'data/train/'
+val_txt_folder_path = 'data/val/'
 # test_txt_folder_path = 'dataset/test'
 
 
@@ -72,12 +74,12 @@ if not pretrained_mlm_pt is None:
 
 # --- START LoRA INTEGRATION (NEW CODE BLOCK) ---
 print('Applying LoRA to the Transformer model...')
-lora_config = LoraConfig(
+lora_config = LoraConfig( ## LoraCondfig holds the hyperparameters for loRA adapters
     r=LORAN_R,
     lora_alpha=LORAN_ALPHA,
     target_modules=["query", "key", "value"], # Target the key Self-Attention layers
     lora_dropout=LORAN_DROPOUT,
-    bias="none",
+    bias="none", # the bias terms will not be trained or affected by the LoRA update
     task_type=TaskType.SEQ_2_SEQ_LM, # Sequence-to-Sequence for Encoder-Decoder
 )
 
@@ -91,15 +93,16 @@ model.transformer.print_trainable_parameters()
 # This is to freeze the encoder weights
 #freeze(model.transformer.encoder)
 
-dirpath = f'catt_{model_type}_model_v1/'
+#dirpath = f'catt_{model_type}_model_v1/'
 
-checkpoint_callback = ModelCheckpoint(dirpath=dirpath, save_top_k=10, save_last=True,
+checkpoint_callback = ModelCheckpoint(dirpath=MODEL_OUTPUT_DIR, save_top_k=10, save_last=True,
                                       monitor='val_der',
                                       filename=f'catt_{model_type}_model' + '-{epoch:02d}-{val_loss:.5f}-{val_der:.5f}')
 
 print('Creating Trainer...')
 
-logs_path = f'{dirpath}/logs'
+logs_path = f'{MODEL_OUTPUT_DIR
+               }/logs'
 
 print('#'*100)
 print(model)
