@@ -20,8 +20,8 @@ def unfreeze(model):
 # Model's Configs
 model_type = 'ed' # 'eo' for Encoder-Only OR 'ed' for Encoder-Decoder
 dl_num_workers = 32
-batch_size = 32
-max_seq_len = 1024
+batch_size = 16
+max_seq_len = 512
 threshold = 0.6
 
 LORAN_R = 8 # Rank (dimensionality) of the two low-rank matrices (A and B) that replace the full weight matrix update.
@@ -114,6 +114,7 @@ trainer = Trainer(
     devices=-1,
     max_epochs=300,
     callbacks=[TQDMProgressBar(refresh_rate=1), checkpoint_callback],
+    precision=16,
     logger=CSVLogger(save_dir=logs_path),
 #    strategy="ddp_find_unused_parameters_false"
     )
