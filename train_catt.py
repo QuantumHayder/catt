@@ -23,12 +23,12 @@ max_seq_len = 1024
 threshold = 0.6
 
 # Pretrained Char-Based BERT
-pretrained_mlm_pt = None # Use None if you want to initialize weights randomly OR the path to the char-based BERT
+pretrained_mlm_pt = "models/char_bert_model_pretrained.pt" # Use None if you want to initialize weights randomly OR the path to the char-based BERT
 #pretrained_mlm_pt = 'char_bert_model_pretrained.pt'
 
-train_txt_folder_path = 'dataset/train'
-val_txt_folder_path = 'dataset/val'
-test_txt_folder_path = 'dataset/test'
+train_txt_folder_path = 'data/train/cleaned_data.txt'
+val_txt_folder_path = 'data/val/cleaned_data.txt'
+# test_txt_folder_path = 'dataset/test'
 
 
 if model_type == 'ed':
@@ -49,16 +49,16 @@ val_dataset = TashkeelDataset(val_txt_folder_path, tokenizer, max_seq_len, tashk
 print('Creating Validation Dataloader...')
 val_dataloader = PrePaddingDataLoader(tokenizer, val_dataset, batch_size=batch_size, num_workers=dl_num_workers, shuffle=False)
 
-print('Creating Test Dataset...')
-test_dataset = TashkeelDataset(test_txt_folder_path, tokenizer, max_seq_len, tashkeel_to_text_ratio_threshold=threshold)
-print('Creating Test Dataloader...')
-test_dataloader = PrePaddingDataLoader(tokenizer, test_dataset, batch_size=batch_size, num_workers=dl_num_workers, shuffle=False)
+# print('Creating Test Dataset...')
+# test_dataset = TashkeelDataset(test_txt_folder_path, tokenizer, max_seq_len, tashkeel_to_text_ratio_threshold=threshold)
+# print('Creating Test Dataloader...')
+# test_dataloader = PrePaddingDataLoader(tokenizer, test_dataset, batch_size=batch_size, num_workers=dl_num_workers, shuffle=False)
 
 print('Creating Model...')
 model = TashkeelModel(tokenizer, max_seq_len=max_seq_len, n_layers=6, learnable_pos_emb=False)
 
 # Use the pretrained weights of the char-based BERT model to initialize the model
-if not pretrained_mlm_pt is None:
+if pretrained_mlm_pt is not None:
     missing = model.transformer.load_state_dict(torch.load(pretrained_mlm_pt), strict=False)
     print(f'Missing layers: {missing}')
 
