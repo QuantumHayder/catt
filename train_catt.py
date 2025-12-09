@@ -7,6 +7,8 @@ from pytorch_lightning.loggers import CSVLogger
 from tashkeel_dataset import TashkeelDataset, PrePaddingDataLoader
 from tashkeel_tokenizer import TashkeelTokenizer
 
+from peft import LoraConfig, get_peft_model, TaskType
+
 def freeze(model):
     for param in model.parameters():
         param.requires_grad = False
@@ -22,9 +24,15 @@ batch_size = 32
 max_seq_len = 1024
 threshold = 0.6
 
+LORAN_R = 8
+LORAN_ALPHA = 16
+LORAN_DROPOUT = 0.05
+
 # Pretrained Char-Based BERT
 pretrained_mlm_pt = "models/char_bert_model_pretrained.pt" # Use None if you want to initialize weights randomly OR the path to the char-based BERT
 #pretrained_mlm_pt = 'char_bert_model_pretrained.pt'
+
+dirpath = f'catt_{model_type}_model_v1_lora/' # <-- MODIFIED
 
 train_txt_folder_path = 'data/train/cleaned_data.txt'
 val_txt_folder_path = 'data/val/cleaned_data.txt'
@@ -58,9 +66,27 @@ print('Creating Model...')
 model = TashkeelModel(tokenizer, max_seq_len=max_seq_len, n_layers=6, learnable_pos_emb=False)
 
 # Use the pretrained weights of the char-based BERT model to initialize the model
-if pretrained_mlm_pt is not None:
+if not pretrained_mlm_pt is None:
     missing = model.transformer.load_state_dict(torch.load(pretrained_mlm_pt), strict=False)
     print(f'Missing layers: {missing}')
+
+# --- START LoRA INTEGRATION (NEW CODE BLOCK) ---
+print('Applying LoRA to the Transformer model...')
+lora_config = LoraConfig(
+    r=LORAN_R,
+    lora_alpha=LORAN_ALPHA,
+    target_modules=["query", "key", "value"], # Target the key Self-Attention layers
+    lora_dropout=LORAN_DROPOUT,
+    bias="none",
+    task_type=TaskType.SEQ_2_SEQ_LM, # Sequence-to-Sequence for Encoder-Decoder
+)
+
+# 2. Wrap the base model: freezes the 72.3MB BERT weights and adds/unfreezes the small LoRA adapters
+model.transformer = get_peft_model(model.transformer, lora_config)
+
+# 3. Print verification: this confirms that the trainable parameters are now very small
+model.transformer.print_trainable_parameters()
+# --- END LoRA INTEGRATION ---
 
 # This is to freeze the encoder weights
 #freeze(model.transformer.encoder)
