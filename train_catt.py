@@ -101,8 +101,7 @@ checkpoint_callback = ModelCheckpoint(dirpath=MODEL_OUTPUT_DIR, save_top_k=10, s
 
 print('Creating Trainer...')
 
-logs_path = f'{MODEL_OUTPUT_DIR
-               }/logs'
+logs_path = f'{MODEL_OUTPUT_DIR}/logs'
 
 print('#'*100)
 print(model)
