@@ -2,7 +2,7 @@ import torch
 import pickle
 from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.callbacks.progress import TQDMProgressBar
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from pytorch_lightning.loggers import CSVLogger
 from tashkeel_dataset import TashkeelDataset, PrePaddingDataLoader
 from tashkeel_tokenizer import TashkeelTokenizer
@@ -83,7 +83,7 @@ lora_config = LoraConfig( ## LoraCondfig holds the hyperparameters for loRA adap
     ], # Target the key Self-Attention layers
     lora_dropout=LORAN_DROPOUT,
     bias="none", # the bias terms will not be trained or affected by the LoRA update
-    #task_type=TaskType.CAUSAL_LM, # Sequence-to-Sequence for Encoder-Decoder
+    task_type=TaskType.FEATURE_EXTRACTION, # Sequence-to-Sequence for Encoder-Decoder
 )
 
 # 2. Wrap the base model: freezes the 72.3MB BERT weights and adds/unfreezes the small LoRA adapters
@@ -110,12 +110,19 @@ print('#'*100)
 print(model)
 print('#'*100)
 
+early_stop = EarlyStopping(
+    monitor="val_der",
+    mode="min",      # lower is better
+    patience=6,      # stop if no improvement for 6 epochs
+    verbose=True
+)
+
 trainer = Trainer(
     #accelerator="cpu",
     accelerator="cuda",
     devices=-1,
     max_epochs=64,
-    callbacks=[TQDMProgressBar(refresh_rate=1), checkpoint_callback],
+    callbacks=[TQDMProgressBar(refresh_rate=1), checkpoint_callback, early_stop],
     precision=16,
     logger=CSVLogger(save_dir=logs_path),
 #    strategy="ddp_find_unused_parameters_false"
