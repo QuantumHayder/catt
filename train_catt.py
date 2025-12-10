@@ -114,7 +114,7 @@ trainer = Trainer(
     #accelerator="cpu",
     accelerator="cuda",
     devices=-1,
-    max_epochs=300,
+    max_epochs=64,
     callbacks=[TQDMProgressBar(refresh_rate=1), checkpoint_callback],
     precision=16,
     logger=CSVLogger(save_dir=logs_path),
