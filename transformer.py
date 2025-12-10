@@ -25,15 +25,15 @@ class EncoderLayer(nn.Module):
         # 1. compute self attention
         _x = x
         x = self.attention(q=x, k=x, v=x, mask=s_mask)
-        
+
         # 2. add and norm
         x = self.dropout1(x)
         x = self.norm1(x + _x)
-        
+
         # 3. positionwise feed forward network
         _x = x
         x = self.ffn(x)
-      
+
         # 4. add and norm
         x = self.dropout2(x)
         x = self.norm2(x + _x)
@@ -60,7 +60,7 @@ class DecoderLayer(nn.Module):
         # 1. compute self attention
         _x = dec
         x = self.self_attention(q=dec, k=dec, v=dec, mask=t_mask)
-        
+
         # 2. add and norm
         x = self.dropout1(x)
         x = self.norm1(x + _x)
@@ -69,7 +69,7 @@ class DecoderLayer(nn.Module):
             # 3. compute encoder - decoder attention
             _x = x
             x = self.enc_dec_attention(q=x, k=enc, v=enc, mask=s_mask)
-            
+
             # 4. add and norm
             x = self.dropout2(x)
             x = self.norm2(x + _x)
@@ -77,7 +77,7 @@ class DecoderLayer(nn.Module):
         # 5. positionwise feed forward network
         _x = x
         x = self.ffn(x)
-        
+
         # 6. add and norm
         x = self.dropout3(x)
         x = self.norm3(x + _x)
@@ -205,7 +205,7 @@ class LayerNorm(nn.Module):
     def forward(self, x):
         mean = x.mean(-1, keepdim=True)
         var = x.var(-1, unbiased=False, keepdim=True)
-        # '-1' means last dimension. 
+        # '-1' means last dimension.
 
         out = (x - mean) / torch.sqrt(var + self.eps)
         out = self.gamma * out + self.beta
@@ -452,6 +452,19 @@ class Transformer(nn.Module):
 
         return mask
 
+    def prepare_inputs_for_generation(self, *args, **kwargs):
+        """
+        Dummy method required by PEFT for TaskType.SEQ_2_SEQ_LM.
+        It simply passes arguments through to the forward pass.
+        """
+        return {"input_ids": kwargs.get("input_ids"), "labels": kwargs.get("labels")}
+
+    def _reorder_cache(self, past_key_values, beam_idx):
+        """
+        Another dummy method often required by generation wrappers.
+        """
+        return past_key_values
+
 
 def make_pad_mask(x, pad_idx):
     q = k = x
@@ -514,10 +527,10 @@ if __name__ == '__main__':
     clip = 1.0
     weight_decay = 5e-4
     inf = float('inf')
-    
+
     src_pad_idx = 2
     trg_pad_idx = 3
-    
+
     enc_voc_size = 37
     dec_voc_size = 15
     model = Transformer(src_pad_idx=src_pad_idx,
