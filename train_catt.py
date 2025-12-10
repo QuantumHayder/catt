@@ -77,7 +77,7 @@ print('Applying LoRA to the Transformer model...')
 lora_config = LoraConfig( ## LoraCondfig holds the hyperparameters for loRA adapters
     r=LORAN_R,
     lora_alpha=LORAN_ALPHA,
-    target_modules=["query", "key", "value"], # Target the key Self-Attention layers
+    target_modules="all-linear", # Target the key Self-Attention layers
     lora_dropout=LORAN_DROPOUT,
     bias="none", # the bias terms will not be trained or affected by the LoRA update
     task_type=TaskType.SEQ_2_SEQ_LM, # Sequence-to-Sequence for Encoder-Decoder
