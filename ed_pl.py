@@ -112,7 +112,8 @@ class TashkeelModel(pl.LightningModule):
 
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=3e-4)
+        optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, self.parameters()),
+    lr=1e-4,)
         #max_iters = 10000
         #lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max_iters, eta_min=3e-6)
         gamma = 1 / 1.000001
