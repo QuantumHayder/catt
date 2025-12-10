@@ -83,7 +83,7 @@ lora_config = LoraConfig( ## LoraCondfig holds the hyperparameters for loRA adap
     ], # Target the key Self-Attention layers
     lora_dropout=LORAN_DROPOUT,
     bias="none", # the bias terms will not be trained or affected by the LoRA update
-    task_type=TaskType.CAUSAL_LM, # Sequence-to-Sequence for Encoder-Decoder
+    #task_type=TaskType.CAUSAL_LM, # Sequence-to-Sequence for Encoder-Decoder
 )
 
 # 2. Wrap the base model: freezes the 72.3MB BERT weights and adds/unfreezes the small LoRA adapters
