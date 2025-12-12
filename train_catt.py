@@ -121,7 +121,7 @@ trainer = Trainer(
     #accelerator="cpu",
     accelerator="cuda",
     devices=-1,
-    max_epochs=16,
+    max_epochs=32,
     callbacks=[TQDMProgressBar(refresh_rate=1), checkpoint_callback, early_stop],
     precision=16,
     logger=CSVLogger(save_dir=logs_path),
@@ -130,4 +130,10 @@ trainer = Trainer(
 
 #ckpt_path = 'YOUR_CKPT_PATH_GOES_HERE'
 #trainer.fit(model, train_dataloader, val_dataloader, ckpt_path=ckpt_path)
-trainer.fit(model, train_dataloader, val_dataloader)
+ckpt_path = "/kaggle/working/catt/catt/catt_ed_model_v1_lora/last.ckpt"
+trainer.fit(
+    model,
+    train_dataloader,
+    val_dataloader,
+    ckpt_path=ckpt_path
+)
